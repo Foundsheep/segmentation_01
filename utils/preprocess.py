@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def erase_coloured_text_and_lines(img_path):
-    img_path = r"C:\Users\msi\Desktop\workspace\001_HM_SPR\04_datasets\1st\SPR2_BG0G46E(DEHG13598)_SABC1470(1.1t)_A365.0(3.0t)_002.jpg"
-
     img = cv2.imread(img_path)
     image = img.copy()
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
