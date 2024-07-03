@@ -8,23 +8,31 @@ import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
-if __name__ == "__main__":
-    import sys
-    sys.path.append(str(Path(__file__).absolute().parent.parent))
+import sys
+sys.path.append(str(Path(__file__).absolute().parent.parent))
 
 from utils.preprocess import erase_coloured_text_and_lines
 
 
-
-def load_data(root, is_train, shuffle, batch_size):
+def load_data(root, is_train, shuffle, batch_size, num_workers):
     ds = SPRDataset(root, is_train)
     dl = DataLoader(ds,
                     shuffle=shuffle,
-                    batch_size=batch_size)
+                    batch_size=batch_size,
+                    num_workers=num_workers,
+                    persistent_workers=True)
     return dl
 
 
 class SPRDataset(Dataset):
+    """
+    1. root 폴더 아래에 'annotated', 'raw' 폴더가 있는 것을 가정한다.
+    2. 'annotated' 폴더 안에 'labelmap.txt' 파일로서 segmentation mask 이미지의 값과 라벨을
+       설명하는 텍스트 파일이 있는 것을 가정한다.
+    3. 'raw' 폴더 내 파일명과 'annotated' 폴더 내 파일명이 동일하다고 가정한다.(확장자 제외)
+       -> cvat을 이용한 마스크 이미지의 확장자는 항상 png여서 'raw' 폴더 내 이미지
+          확장자가 jpg인 경우 확장자만 바꾼 파일명을 사용하여 탐색한다.
+    """
     def __init__(self, root, is_train=True):
         super().__init__()
         self.root = root
@@ -131,12 +139,14 @@ class SPRDataset(Dataset):
     def _get_transforms(self):
         if self.is_train:
             transforms = A.Compose([
+                A.Resize(height=32*12, width=32*18),
                 A.HorizontalFlip(),
                 A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
                 ToTensorV2(transpose_mask=True),
             ])
         else:
             transforms = A.Compose([
+                A.Resize(height=32*12, width=32*18),
                 A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
                 ToTensorV2(transpose_mask=True),
             ])
