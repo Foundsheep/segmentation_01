@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 from torchvision.transforms import v2
 import numpy as np
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 if __name__ == "__main__":
     import sys
@@ -15,22 +17,7 @@ from utils.preprocess import erase_coloured_text_and_lines
 
 
 def load_data(root, is_train, shuffle, batch_size):
-    transforms = {
-        "train": v2.Compose([
-            v2.ToTensor(),
-            v2.RandomHorizontalFlip(),
-            v2.ToDtype(torch.float32, scale=True),
-            v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ]),
-        "valid": v2.Compose([
-            v2.ToTensor(),
-            v2.ToDtype(torch.float32, scale=True),
-            v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
-    }
-
-    transforms_key = "train" if is_train else "valid"
-    ds = SPRDataset(root, transforms[transforms_key])
+    ds = SPRDataset(root, is_train)
     dl = DataLoader(ds,
                     shuffle=shuffle,
                     batch_size=batch_size)
@@ -38,10 +25,11 @@ def load_data(root, is_train, shuffle, batch_size):
 
 
 class SPRDataset(Dataset):
-    def __init__(self, root, transforms=None):
+    def __init__(self, root, is_train=True):
         super().__init__()
         self.root = root
-        self.transforms = transforms
+        self.is_train = is_train
+        self.transforms = self._get_transforms()
         self.img_list, self.label_list, self.label_txt = self._read_paths()
         self.num_classes = len(self.label_txt)
         self.label_to_name_map, self.name_to_label_map = self._make_mapping_dict()
@@ -81,7 +69,9 @@ class SPRDataset(Dataset):
             label_mask[x, y, txt_idx] = 1
 
         if self.transforms:
-            img, label_mask = self.transforms(img, label_mask)
+            augmented = self.transforms(image=img, mask=label_mask)
+            img = augmented["image"]
+            label_mask = augmented["mask"]
         return img, label_mask
     
     def _read_paths(self):
@@ -137,16 +127,40 @@ class SPRDataset(Dataset):
             name_to_label[label_name] = txt_idx
 
         return label_to_name, name_to_label
+    
+    def _get_transforms(self):
+        if self.is_train:
+            transforms = A.Compose([
+                A.HorizontalFlip(),
+                A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+                ToTensorV2(transpose_mask=True),
+            ])
+        else:
+            transforms = A.Compose([
+                A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+                ToTensorV2(transpose_mask=True),
+            ])
+        return transforms 
 
 
 if __name__ == "__main__":
     path = "./datasets/spr_sample_01"
     print(Path(path).exists())
 
-    dl = load_data(path, is_train=True, shuffle=True, batch_size=4)
+    dl = load_data(path, is_train=True, shuffle=True, batch_size=3)
+
+    for d in dl:
+        break
+    
+    print("=== train")
+    print("image size: ", d[0].size())
+    print("mask size: ", d[1].size())
+
+    dl = load_data(path, is_train=False, shuffle=True, batch_size=3)
 
     for d in dl:
         break
 
+    print("=== valid")
     print("image size: ", d[0].size())
     print("mask size: ", d[1].size())
