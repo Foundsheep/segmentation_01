@@ -3,15 +3,13 @@ import cv2
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
-from torchvision.transforms import v2
 import numpy as np
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
+
 
 import sys
 sys.path.append(str(Path(__file__).absolute().parent.parent))
 
-from utils.preprocess import erase_coloured_text_and_lines
+from utils.preprocess import erase_coloured_text_and_lines, get_transforms
 
 
 def load_data(root, is_train, shuffle, batch_size, num_workers):
@@ -37,7 +35,7 @@ class SPRDataset(Dataset):
         super().__init__()
         self.root = root
         self.is_train = is_train
-        self.transforms = self._get_transforms()
+        self.transforms = get_transforms(self.is_train)
         self.img_list, self.label_list, self.label_txt = self._read_paths()
         self.num_classes = len(self.label_txt)
         self.label_to_name_map, self.name_to_label_map = self._make_mapping_dict()
@@ -135,22 +133,6 @@ class SPRDataset(Dataset):
             name_to_label[label_name] = txt_idx
 
         return label_to_name, name_to_label
-    
-    def _get_transforms(self):
-        if self.is_train:
-            transforms = A.Compose([
-                A.Resize(height=32*12, width=32*18),
-                A.HorizontalFlip(),
-                A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-                ToTensorV2(transpose_mask=True),
-            ])
-        else:
-            transforms = A.Compose([
-                A.Resize(height=32*12, width=32*18),
-                A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-                ToTensorV2(transpose_mask=True),
-            ])
-        return transforms 
 
 
 if __name__ == "__main__":

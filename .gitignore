@@ -165,3 +165,9 @@ cython_debug/
 
 # datasets
 /model_trainer/datasets
+
+# training checkpoint
+/model_server/202*
+
+# inference result
+/model_server/inference_result*

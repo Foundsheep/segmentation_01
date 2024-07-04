@@ -3,6 +3,9 @@ from torchvision.transforms import ToTensor
 import lightning as L
 import segmentation_models_pytorch as smp
 from pathlib import Path
+import numpy as np
+from PIL import Image
+import torch
 
 import sys
 sys.path.append(str(Path(__file__).absolute().parent.parent.parent))
@@ -48,7 +51,40 @@ class SPRSegmentModel(L.LightningModule):
         else:
             print(f"Model name is wrong. {model_name = }")
         return model
+    
+    def forward(self, x):
+        x = self._preprocess(x)
+        x = x.to(Config.DEVICE)
+        self.model.to(Config.DEVICE)
+        return self.model(x)
 
+    def _preprocess(self, img):
+
+        # to torch.Tensor
+        if isinstance(img, Image.Image):
+            x = np.array(img)
+            x = torch.from_numpy(x)
+        elif isinstance(img, np.ndarray):
+            x = torch.from_numpy(img)
+        elif isinstance(img, torch.Tensor):
+            x = img
+        else:
+            raise TypeError(f"image should be either PIL.Image.Image or numpy.ndarray. Input type is {type(img)}")
+
+        # C, H, W
+        if x.size()[0] != 3:
+            x = x.permute(2, 0, 1)
+
+        # dtype conversion
+        if x.dtype != torch.float:
+            x = x.type(torch.float)
+
+        # dimension for batch
+        if x.dim() == 3:
+            x = x.unsqueeze(0)
+
+        return x
+    
     def shared_step(self, batch, stage):
         x, y = batch
         preds = self.model(x)

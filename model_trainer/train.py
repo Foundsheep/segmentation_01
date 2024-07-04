@@ -33,7 +33,7 @@ def main(args):
                        num_workers=args.dl_num_workers)
 
     model = SPRSegmentModel(args.model_name, args.loss_fn, args.optimizer)
-    model.to(Config.DEVICE)
+    # model.to(Config.DEVICE)
 
     trainer.fit(model=model,
                 train_dataloaders=train_dl,
