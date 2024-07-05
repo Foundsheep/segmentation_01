@@ -121,6 +121,7 @@ class SPRDataset(Dataset):
         
         return img_list, label_list, label_txt
 
+    # TODO: if not used, erase this part. this one is used in inferencer.py
     def _make_mapping_dict(self):
         label_to_name = {}
         name_to_label = {}
