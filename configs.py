@@ -13,7 +13,7 @@ class Config():
     SHUFFLE = True
     BATCH_SIZE = 3
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    DL_NUM_WORKERS = 1 # TODO: change later to adapt to the local circumstance
+    DL_NUM_WORKERS = 2 # TODO: change later to adapt to the local circumstance
     LOG_EVERY_N_STEPS = 1
     TRAIN_LOG_FOLDER = "../model_server" if Path.cwd().parts[-1] == "model_trainer" else "./"
     RESIZED_HEIGHT = 640
