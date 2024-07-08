@@ -25,7 +25,7 @@ def main(args):
             print("dataset seperation failed")
         elif split_result == Config.SUCCESS:
             print("dataset seperation succeeded")
-
+ 
         args.root = args.split_root
 
     print(f"=== root: [{args.root}]")
@@ -34,7 +34,7 @@ def main(args):
                         max_epochs=args.max_epochs,
                         log_every_n_steps=args.log_every_n_steps,
                         inference_mode=True,
-                        default_root_dir=args.train_log_folder + f"/{timestamp}")
+                        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_fn}")
     
     # dataloaders
     train_dl = load_data(root=args.root + "/train",
