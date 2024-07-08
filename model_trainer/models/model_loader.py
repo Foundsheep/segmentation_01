@@ -1,5 +1,4 @@
-from torch import optim, nn, utils, Tensor
-from torchvision.transforms import ToTensor
+from torch import optim
 import lightning as L
 import segmentation_models_pytorch as smp
 from pathlib import Path
