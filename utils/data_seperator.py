@@ -21,7 +21,7 @@ def seperate_data(root, train_ratio, val_ratio, test_ratio, shuffle=True):
         print("necessary folders don't exist")
         return failure
     
-    raw_files = list(raw_folder.glob("*"))
+    raw_files = sorted(list(raw_folder.glob("*")))
     num_files = len(raw_files)
     indices = np.arange(num_files)
 
@@ -52,7 +52,7 @@ def seperate_data(root, train_ratio, val_ratio, test_ratio, shuffle=True):
         print("seperated data exist already!")
         return success
 
-    annotated_files = list(annotated_folder.glob("*.png")) + list(annotated_folder.glob("*.jpg"))
+    annotated_files = sorted(list(annotated_folder.glob("*.png")) + list(annotated_folder.glob("*.jpg")))
     labelmap_txt = list(annotated_folder.glob("labelmap.txt"))[0]
 
     # make commonly necessary folders
@@ -112,7 +112,7 @@ def seperate_data(root, train_ratio, val_ratio, test_ratio, shuffle=True):
         copy_path_labelmap_txt.write_bytes(labelmap_txt.read_bytes())
 
         count += 1
-    print(f"val saved [{count}] files, {num_train = }")
+    print(f"val saved [{count}] files, {num_val = }")
 
     # --- test
     count = 0
@@ -129,5 +129,5 @@ def seperate_data(root, train_ratio, val_ratio, test_ratio, shuffle=True):
         copy_path_labelmap_txt.write_bytes(labelmap_txt.read_bytes())
 
         count += 1
-    print(f"test saved [{count}] files, {num_train = }")
+    print(f"test saved [{count}] files, {num_test = }")
     return success
