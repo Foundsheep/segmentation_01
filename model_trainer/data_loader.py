@@ -122,8 +122,8 @@ class SPRDataset(Dataset):
         label_map_path = folder_annotated / Path("labelmap.txt")
         with open(str(label_map_path), "r") as f:
 
-            # first and second lines are asuumed to have title and background info
-            label_txt = f.readlines()[2:]
+            # first line is asuumed to have title
+            label_txt = f.readlines()[1:]
         
         return img_list, label_list, label_txt
 

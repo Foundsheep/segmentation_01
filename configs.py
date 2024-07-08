@@ -7,7 +7,7 @@ class Config():
     OPTIMIZER = "Adam"
 
     # train
-    NUM_CLASSES = 4
+    NUM_CLASSES = 5
     MAX_EPOCHS = 3
     MIN_EPOCHS = 2
     SHUFFLE = True
