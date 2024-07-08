@@ -22,3 +22,7 @@ class Config():
     # inference
     CHECKPOINT_PATH = "../model_server/20240704_165444/lightning_logs/version_0/checkpoints/epoch=4-step=10.ckpt"
     LABELMAP_TXT_PATH = "../model_trainer/datasets/spr_sample_01/annotated/labelmap.txt"
+
+    # code
+    SUCCESS = 1
+    FAILURE = 0

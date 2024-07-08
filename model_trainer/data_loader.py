@@ -13,12 +13,16 @@ from utils.preprocess import erase_coloured_text_and_lines, get_transforms
 
 
 def load_data(root, is_train, shuffle, batch_size, num_workers):
+    dl = None
     ds = SPRDataset(root, is_train)
-    dl = DataLoader(ds,
-                    shuffle=shuffle,
-                    batch_size=batch_size,
-                    num_workers=num_workers,
-                    persistent_workers=True)
+    try:
+        dl = DataLoader(ds,
+                        shuffle=shuffle,
+                        batch_size=batch_size,
+                        num_workers=num_workers,
+                        persistent_workers=True)
+    except:
+        print("DataLoader count not be defined")
     return dl
 
 
@@ -30,6 +34,8 @@ class SPRDataset(Dataset):
     3. 'raw' 폴더 내 파일명과 'annotated' 폴더 내 파일명이 동일하다고 가정한다.(확장자 제외)
        -> cvat을 이용한 마스크 이미지의 확장자는 항상 png여서 'raw' 폴더 내 이미지
           확장자가 jpg인 경우 확장자만 바꾼 파일명을 사용하여 탐색한다.
+    4. 'preprocessed' 폴더가 없을 경우 이미지 내 있는 텍스트를 지우는 pre-processing
+       과정을 거친 후 해당 폴더에 전처리된 파일을 저장한다.
     """
     def __init__(self, root, is_train=True):
         super().__init__()

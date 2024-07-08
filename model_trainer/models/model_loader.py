@@ -110,5 +110,8 @@ class SPRSegmentModel(L.LightningModule):
     def validation_step(self, batch, batch_idx):
         return self.shared_step(batch, "valid")
 
+    def test_step(self, batch, batch_idx):
+        return self.shared_step(batch, "test")
+
     def configure_optimizers(self):
         return self.optimizer
