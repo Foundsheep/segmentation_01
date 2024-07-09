@@ -11,7 +11,7 @@ class Config():
     MAX_EPOCHS = 3
     MIN_EPOCHS = 2
     SHUFFLE = True
-    BATCH_SIZE = 3
+    BATCH_SIZE = 8
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     DL_NUM_WORKERS = 2 # TODO: change later to adapt to the local circumstance
     LOG_EVERY_N_STEPS = 1

@@ -34,7 +34,7 @@ def main(args):
                         max_epochs=args.max_epochs,
                         log_every_n_steps=args.log_every_n_steps,
                         inference_mode=True,
-                        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_fn}")
+                        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_fn}_epochs{args.max_epochs}_batch{args.batch_size}")
     
     # dataloaders
     train_dl = load_data(root=args.root + "/train",
