@@ -99,7 +99,7 @@ class SPRSegmentModel(L.LightningModule):
         
         iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="macro-imagewise")
 
-        self.log(f"{stage}_IoU", iou, prog_bar=True, on_epoch=True)
+        self.log(f"{stage}_IoU", iou, prog_bar=True, on_epoch=True, sync_dist=True)
         self.log(f"{stage}_loss", loss) 
         return {"loss": loss, "iou": iou}
 
