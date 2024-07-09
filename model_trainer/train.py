@@ -1,5 +1,6 @@
 import torch
 import lightning as L
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from models.model_loader import SPRSegmentModel
 from data_loader import load_data
 from arg_parser import get_args
@@ -28,13 +29,20 @@ def main(args):
  
         args.root = args.split_root
 
+    # callbacks
+    early_stop_callback = EarlyStopping(monitor="val_iou",
+                                        patience=4,
+                                        mode="max",
+                                        verbose=True)
+
     print(f"=== root: [{args.root}]")
     trainer = L.Trainer(accelerator="gpu" if Config.DEVICE == "cuda" else Config.DEVICE,
                         min_epochs=args.min_epochs,
                         max_epochs=args.max_epochs,
                         log_every_n_steps=args.log_every_n_steps,
                         inference_mode=True,
-                        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_fn}_epochs{args.max_epochs}_batch{args.batch_size}")
+                        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_fn}_epochs{args.max_epochs}_batch{args.batch_size}",
+                        callbacks=[early_stop_callback] if args.use_early_stop else [])
     
     # dataloaders
     train_dl = load_data(root=args.root + "/train",

@@ -15,6 +15,7 @@ def get_args():
     parser.add_argument("--log_every_n_steps", type=int, default=Config.LOG_EVERY_N_STEPS)
     parser.add_argument("--train_log_folder", type=str, default=Config.TRAIN_LOG_FOLDER)
     parser.add_argument("--checkpoint_dir", type=str, default="")
+    parser.add_argument("--use_early_stop", type=bool, default=False)
 
     # train test split
     parser.add_argument("--split_root", type=str, default="")
