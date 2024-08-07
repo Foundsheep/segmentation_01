@@ -8,8 +8,8 @@ class Config():
 
     # train
     NUM_CLASSES = 5
-    MAX_EPOCHS = 3
-    MIN_EPOCHS = 2
+    MAX_EPOCHS = 1
+    MIN_EPOCHS = 1
     SHUFFLE = True
     BATCH_SIZE = 8
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
