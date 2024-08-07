@@ -34,7 +34,7 @@ def get_label_info(labelmap_txt_path):
         return label_to_name, name_to_label, label_to_rgb
 
     with open(labelmap_txt_path, "r") as f:
-        label_txt = f.readlines()[2:]
+        label_txt = f.readlines()[1:]
 
     return _make_mapping_dict(label_txt)
 

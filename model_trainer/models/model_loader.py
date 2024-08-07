@@ -12,6 +12,9 @@ sys.path.append(str(Path(__file__).absolute().parent.parent.parent))
 from configs import Config
 from torch.nn.functional import softmax
 
+# TODO:
+# 1. accuracy or recall for each class to be logged 
+# 2. get model files in local host
 
 class SPRSegmentModel(L.LightningModule):
     def __init__(self, model_name, loss_fn, optimizer):
