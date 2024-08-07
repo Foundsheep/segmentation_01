@@ -1,0 +1,21 @@
+services:
+  segmentation:
+    image: segmentation
+    build: 
+      context: .
+      shm_size: '8gb'
+    shm_size: '8gb'
+    container_name: hm_segmentation
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+          target: /app
+          ignore:
+            - /app/notebooks/
+    volumes:
+      - ./model_trainer/datasets:/app/model_trainer/datasets
+      - seg-vol:/app/model_server/
+
+volumes:
+  seg-vol:
