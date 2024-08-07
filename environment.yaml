@@ -1,5 +1,6 @@
 name: seg
 channels:
+  - conda-forge
   - pytorch
   - nvidia
   - defaults
