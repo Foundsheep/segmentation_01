@@ -8,8 +8,15 @@ from configs import Config
 from utils.data_seperator import seperate_data
 import datetime
 
+import optuna
+from optuna_integration import PyTorchLightningPruningCallback
 
-def main(args):
+def main(args, trial: optuna.trial.Trial):
+
+    # hyperparameter tuning
+    batch_size = trial.suggest_int("batch_size", 4, 16)
+    hparams = dict(batch_size=batch_size)
+
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
     # GPU performance increases!
@@ -34,6 +41,12 @@ def main(args):
                                         patience=4,
                                         mode="max",
                                         verbose=True)
+    hparams_callback = PyTorchLightningPruningCallback(trial, monitor="valid_loss")
+    callbacks = []
+    if args.use_early_stop:
+        callbacks.append(early_stop_callback)
+    if args.hparams_tuning:
+        callbacks.append(hparams_callback)
 
     print(f"=== root: [{args.root}]")
     trainer = L.Trainer(accelerator="gpu" if Config.DEVICE == "cuda" else Config.DEVICE,
@@ -42,7 +55,7 @@ def main(args):
                         log_every_n_steps=args.log_every_n_steps,
                         inference_mode=True,
                         default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_fn}_epochs{args.max_epochs}_batch{args.batch_size}",
-                        callbacks=[early_stop_callback] if args.use_early_stop else [])
+                        callbacks=callbacks)
     
     # dataloaders
     train_dl = load_data(root=args.root + "/train",
@@ -73,6 +86,9 @@ def main(args):
         model = SPRSegmentModel(args.model_name, args.loss_fn, args.optimizer)
     # model.to(Config.DEVICE)
 
+    # hyperparameter log
+    trainer.logger.log_hyperparams(hparams)
+
     trainer.fit(model=model,
                 train_dataloaders=train_dl,
                 val_dataloaders=val_dl)
@@ -80,6 +96,7 @@ def main(args):
     if test_dl is not None:
         trainer.test(model, test_dl)
 
+    return trainer.callback_bmetrics["valid_loss"].item()
 
 if __name__ == "__main__":
     args = get_args()

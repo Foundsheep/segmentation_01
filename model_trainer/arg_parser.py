@@ -1,6 +1,9 @@
 import argparse
 from configs import Config
 
+# TODO
+# 1. integrate args as one receiving from parent args
+# 2. make configs.py concise or remove it
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=str, default="")
@@ -23,5 +26,6 @@ def get_args():
     parser.add_argument("--val_ratio", type=float, default="0.1")
     parser.add_argument("--test_ratio", type=float, default="0.1")
 
+    parser.add_argument("--hparams_tuning", type=bool, default=False)
     args = parser.parse_args()
     return args
