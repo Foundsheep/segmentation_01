@@ -36,8 +36,6 @@ class SPRDataset(Dataset):
     3. 'raw' 폴더 내 파일명과 'annotated' 폴더 내 파일명이 동일하다고 가정한다.(확장자 제외)
        -> cvat을 이용한 마스크 이미지의 확장자는 항상 png여서 'raw' 폴더 내 이미지
           확장자가 jpg인 경우 확장자만 바꾼 파일명을 사용하여 탐색한다.
-    4. 'preprocessed' 폴더가 없을 경우 이미지 내 있는 텍스트를 지우는 pre-processing
-       과정을 거친 후 해당 폴더에 전처리된 파일을 저장한다.
     """
     def __init__(self, 
                  ds_root,
@@ -131,18 +129,20 @@ class SPRDataset(Dataset):
     
 
 class SPRDataModule(L.LightningDataModule):
-    def __init__(self, root, batch_size, shuffle, data_split=True, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
+    def __init__(self, root, batch_size, shuffle, dl_num_workers, data_split=True, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
         super().__init__()
         self.root = root
         self.batch_size = batch_size
         self.shuffle = shuffle
+        self.dl_num_workers = dl_num_workers
         self.data_split = data_split
-        self.train_ratio = train_ratio,
-        self.val_ratio = val_ratio,
-        self.test_ratio = test_ratio,
-        self.folder_raw = Path(self.root) / Path("raw")
-        self.folder_preprocessed = Path(self.root) / Path("preprocessed")
-        self.folder_annotated = Path(self.root) / Path("annotated")
+        self.train_ratio = train_ratio
+        self.val_ratio = val_ratio
+        self.test_ratio = test_ratio
+        self.folder_root = Path(self.root)
+        self.folder_raw = self.folder_root / "raw"
+        self.folder_preprocessed = self.folder_root / "preprocessed"
+        self.folder_annotated = self.folder_root / "annotated"
 
     def prepare_data(self):
         """
@@ -150,6 +150,7 @@ class SPRDataModule(L.LightningDataModule):
         and don't need to be done more than that
         """
         self._pre_process_image()
+
         if self.data_split:
             split_result = self._split_data(root=self.root,
                                             train_ratio=self.train_ratio,
@@ -204,18 +205,16 @@ class SPRDataModule(L.LightningDataModule):
         sum_ratio = train_ratio + val_ratio + test_ratio
         if str(sum_ratio) != "1.0" and str(sum_ratio) != "1":
             return failure
-        
-        # get the number of all files
-        root_folder = Path(root)
-        annotated_folder = root_folder / "annotated"
-        raw_folder = root_folder / "raw"
 
-        if not root_folder.exists() or not annotated_folder.exists() or not raw_folder.exists():
+        # get the number of all files
+        if not self.folder_root.exists() or \
+            not self.folder_annotated.exists() or \
+            not self.folder_preprocessed.exists():
             print("necessary folders don't exist")
             return failure
         
-        raw_files = sorted(list(raw_folder.glob("*")))
-        num_files = len(raw_files)
+        files_preprocessed = sorted(list(self.folder_preprocessed.glob("*")))
+        num_files = len(files_preprocessed)
         indices = np.arange(num_files)
 
         # get the numbers for each dataset
@@ -236,33 +235,33 @@ class SPRDataModule(L.LightningDataModule):
             return failure
 
         # prepare the directories for copies
-        train_folder = root_folder / "train"
-        val_folder = root_folder / "val"
-        test_folder = root_folder / "test"
+        train_folder = self.folder_root / "train"
+        val_folder = self.folder_root / "val"
+        test_folder = self.folder_root / "test"
 
         # if seperated before
         if train_folder.exists():
             print("seperated data exist already!")
             return success
 
-        annotated_files = sorted(list(annotated_folder.glob("*.png")) + list(annotated_folder.glob("*.jpg")))
-        labelmap_txt = list(annotated_folder.glob("labelmap.txt"))[0]
+        files_annotated = sorted(list(self.folder_annotated.glob("*.png")) + list(self.folder_annotated.glob("*.jpg")))
+        labelmap_txt = list(self.folder_annotated.glob("labelmap.txt"))[0]
 
         # make commonly necessary folders
         if num_train > 0:
             train_folder.mkdir()
             (train_folder / "annotated").mkdir()
-            (train_folder / "raw").mkdir()
+            (train_folder / "preprocessed").mkdir()
 
         if num_val > 0:
             val_folder.mkdir()
             (val_folder / "annotated").mkdir()
-            (val_folder / "raw").mkdir()
+            (val_folder / "preprocessed").mkdir()
 
         if num_test > 0:
             test_folder.mkdir()
             (test_folder / "annotated").mkdir()
-            (test_folder / "raw").mkdir()
+            (test_folder / "preprocessed").mkdir()
 
         # shuffle
         if shuffle:
@@ -276,15 +275,15 @@ class SPRDataModule(L.LightningDataModule):
         # --- train
         count = 0
         for index in indices_train:
-            path_raw = raw_files[index]
-            path_annotated = annotated_files[index]
+            path_preprocessed = files_preprocessed[index]
+            path_annotated = files_annotated[index]
 
-            copy_path_raw = train_folder / "raw" / path_raw.name
             copy_path_annotated = train_folder / "annotated" / path_annotated.name
+            copy_path_preprocessed = train_folder / "preprocessed" / path_preprocessed.name
             copy_path_labelmap_txt = train_folder / "annotated" / labelmap_txt.name
 
-            copy_path_raw.write_bytes(path_raw.read_bytes())
             copy_path_annotated.write_bytes(path_annotated.read_bytes())
+            copy_path_preprocessed.write_bytes(path_preprocessed.read_bytes())
             copy_path_labelmap_txt.write_bytes(labelmap_txt.read_bytes())
 
             count += 1
@@ -293,15 +292,15 @@ class SPRDataModule(L.LightningDataModule):
         # --- val
         count = 0
         for index in indices_val:
-            path_raw = raw_files[index]
-            path_annotated = annotated_files[index]
+            path_preprocessed = files_preprocessed[index]
+            path_annotated = files_annotated[index]
 
-            copy_path_raw = val_folder / "raw" / path_raw.name
             copy_path_annotated = val_folder / "annotated" / path_annotated.name
+            copy_path_preprocessed = val_folder / "preprocessed" / path_preprocessed.name
             copy_path_labelmap_txt = val_folder / "annotated" / labelmap_txt.name
 
-            copy_path_raw.write_bytes(path_raw.read_bytes())
             copy_path_annotated.write_bytes(path_annotated.read_bytes())
+            copy_path_preprocessed.write_bytes(path_preprocessed.read_bytes())
             copy_path_labelmap_txt.write_bytes(labelmap_txt.read_bytes())
 
             count += 1
@@ -310,21 +309,20 @@ class SPRDataModule(L.LightningDataModule):
         # --- test
         count = 0
         for index in indices_test:
-            path_raw = raw_files[index]
-            path_annotated = annotated_files[index]
+            path_preprocessed = files_preprocessed[index]
+            path_annotated = files_annotated[index]
 
-            copy_path_raw = test_folder / "raw" / path_raw.name
             copy_path_annotated = test_folder / "annotated" / path_annotated.name
+            copy_path_preprocessed = test_folder / "preprocessed" / path_preprocessed.name
             copy_path_labelmap_txt = test_folder / "annotated" / labelmap_txt.name
 
-            copy_path_raw.write_bytes(path_raw.read_bytes())
             copy_path_annotated.write_bytes(path_annotated.read_bytes())
+            copy_path_preprocessed.write_bytes(path_preprocessed.read_bytes())
             copy_path_labelmap_txt.write_bytes(labelmap_txt.read_bytes())
 
             count += 1
         print(f"test saved [{count}] files, {num_test = }")
         return success
-        
 
     def setup(self, stage: str):
         if stage == "fit":
@@ -351,16 +349,29 @@ class SPRDataModule(L.LightningDataModule):
                                        is_train=True,
                                        transforms=get_transforms(True))
     def train_dataloader(self):
-        return DataLoader(self.ds_train, batch_size=self.batch_size, shuffle=self.shuffle)
+        return DataLoader(self.ds_train, 
+                          batch_size=self.batch_size,
+                          shuffle=self.shuffle, 
+                          num_workers=self.dl_num_workers,
+                          persistent_workers=True)
     
     def val_dataloader(self):
-        return DataLoader(self.ds_val, batch_size=self.batch_size)
+        return DataLoader(self.ds_val, 
+                          batch_size=self.batch_size, 
+                          num_workers=self.dl_num_workers,
+                          persistent_workers=True)
 
     def test_dataloader(self):
-        return DataLoader(self.ds_test, batch_size=self.batch_size)
+        return DataLoader(self.ds_test, 
+                          batch_size=self.batch_size, 
+                          num_workers=self.dl_num_workers,
+                          persistent_workers=True)
 
     def predict_dataloader(self):
-        return DataLoader(self.ds_predict, batch_size=self.batch_size)
+        return DataLoader(self.ds_predict, 
+                          batch_size=self.batch_size, 
+                          num_workers=self.dl_num_workers,
+                          persistent_workers=True)
 
 
 if __name__ == "__main__":

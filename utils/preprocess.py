@@ -31,7 +31,6 @@ def erase_coloured_text_and_lines(img_path):
 
     return dst
 
-
 def get_transforms(is_train):
     if is_train:
         transforms = A.Compose([

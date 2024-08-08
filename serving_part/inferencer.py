@@ -4,7 +4,7 @@ from pathlib import Path
 print(Path.cwd().parent)
 sys.path.append(str(Path.cwd().parent))
 
-from model_trainer.models.model_loader import SPRSegmentModel
+from training_part.model_loader import SPRSegmentModel
 from utils.preprocess import get_transforms
 import datetime
 from PIL import Image
