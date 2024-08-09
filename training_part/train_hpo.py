@@ -12,27 +12,32 @@ from ray.train.lightning import (
     prepare_trainer,
 )
 
+from pathlib import Path
+import ray
 from ray import tune
 from ray.tune.schedulers import ASHAScheduler
 from ray.train import RunConfig, ScalingConfig, CheckpointConfig
 
-def train_func(args):
-    dm = SPRDataModule(root=args.root,
-                       batch_size=args.batch_size,
-                       shuffle=args.shuffle,
-                       dl_num_workers=args.dl_num_workers,
-                       data_split=args.data_split,
-                       train_ratio=args.train_ratio,
-                       val_ratio=args.val_ratio,
-                       test_ratio=args.test_ratio)
+def train_func(args):    
+    # GPU performance increases!
+    torch.set_float32_matmul_precision('medium')
+
+    dm = SPRDataModule(root=args["root"],
+                       batch_size=args["batch_size"],
+                       shuffle=args["shuffle"],
+                       dl_num_workers=args["dl_num_workers"],
+                       data_split=args["data_split"],
+                       train_ratio=args["train_ratio"],
+                       val_ratio=args["val_ratio"],
+                       test_ratio=args["test_ratio"])
     
-    model = SPRSegmentModel(model_name=args.model_name,
-                            loss_name=args.loss_name,
-                            optimizer_name=args.optimizer_name,
-                            lr=args.lr,
-                            use_early_stop=args.use_early_stop,
-                            momentum=args.momentum,
-                            weight_decay=args.weight_decay)
+    model = SPRSegmentModel(model_name=args["model_name"],
+                            loss_name=args["loss_name"],
+                            optimizer_name=args["optimizer_name"],
+                            lr=args["lr"],
+                            use_early_stop=args["use_early_stop"],
+                            momentum=args["momentum"],
+                            weight_decay=args["weight_decay"])
 
     trainer = L.Trainer(
         devices="auto",
@@ -47,10 +52,15 @@ def train_func(args):
 
 
 def main_tune(args):
+    reset_dir_for_ray_session = str(Path(__file__).parent.absolute())
+    ray.init(_temp_dir=reset_dir_for_ray_session)
+
     search_space = {
     "lr": tune.loguniform(1e-4, 1e-1),
     "batch_size": tune.choice([4, 6, 8]),
     }
+
+    search_space.update(vars(args))    
 
     # scaling_config = ScalingConfig(
     #     num_workers=2, use_gpu=True, resources_per_worker={"CPU": 1, "GPU": 1}

@@ -21,6 +21,7 @@ class Config():
     DL_NUM_WORKERS = 2 # TODO: change later to adapt to the local circumstance
     LOG_EVERY_N_STEPS = 1
     TRAIN_LOG_FOLDER = str(Path(__file__).absolute().parent / "training_part")
+    SAMPLE_DATA_PATH = "./datasets/spr_sample_03_10"
 
     # inference
     CHECKPOINT_PATH = "../serving_part/20240704_165444/lightning_logs/version_0/checkpoints/epoch=4-step=10.ckpt"

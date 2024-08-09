@@ -139,11 +139,12 @@ class SPRDataModule(L.LightningDataModule):
         self.train_ratio = train_ratio
         self.val_ratio = val_ratio
         self.test_ratio = test_ratio
-        self.folder_root = Path(self.root)
+        self.folder_root = Path(self.root).absolute()
         self.folder_raw = self.folder_root / "raw"
         self.folder_preprocessed = self.folder_root / "preprocessed"
         self.folder_annotated = self.folder_root / "annotated"
-
+        print("==========init===========\n==========init===========\n==========init===========\n")
+        print(str(self.folder_root))
     def prepare_data(self):
         """
         this part prepares data that are processed only once on CPU
@@ -167,7 +168,7 @@ class SPRDataModule(L.LightningDataModule):
         """
         # if annotated folder doesn't exist, it doesn't proceed
         if not self.folder_annotated.exists():
-            print("annotated folder doesn't exist, so returning None")
+            print(f"annotated folder doesn't exist, so returning None\nannotated folder set to [{str(self.folder_annotated.absolute())}]")
             return None, None, None
 
         # if pre-processed data already exist
@@ -381,7 +382,8 @@ if __name__ == "__main__":
     spr_dm = SPRDataModule(root=path,
                            batch_size=4,
                            shuffle=False,
-                           data_split=False
+                           data_split=False,
+                           dl_num_workers=2,
                           )
     spr_dm.prepare_data()
     spr_dm.setup(stage=None)

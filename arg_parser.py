@@ -5,7 +5,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     # train
-    parser.add_argument("--root", type=str, default="")
+    parser.add_argument("--root", type=str, default=Config.SAMPLE_DATA_PATH)
     parser.add_argument("--model_name", type=str, default=Config.MODEL_NAME)
     parser.add_argument("--loss_name", type=str, default=Config.LOSS_FN)
     parser.add_argument("--optimizer_name", type=str, default=Config.OPTIMIZER)
