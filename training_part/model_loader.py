@@ -5,9 +5,12 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 import torch
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
+from lightning.pytorch.callbacks import ModelCheckpoint
+import datetime
 
 import sys
-sys.path.append(str(Path(__file__).absolute().parent.parent.parent))
+sys.path.append(str(Path(__file__).absolute().parent.parent))
 
 from configs import Config
 from torch.nn.functional import softmax
@@ -17,15 +20,30 @@ from torch.nn.functional import softmax
 # 2. get model files in local host
 
 class SPRSegmentModel(L.LightningModule):
-    def __init__(self, model_name, loss_fn, optimizer):
+    def __init__(self, model_name, loss_name, optimizer_name, lr, use_early_stop=False, momentum=0., weight_decay=0.):
         super().__init__()
-        self.model = self._load_model(model_name)
+        self.model_name = model_name
+        self.loss_name = loss_name
+        self.optimizer_name = optimizer_name
+        self.lr = lr
+        self.momentum = momentum
+        self.weight_decay = weight_decay
+        self.use_early_stop = use_early_stop
+        self.model = self._load_model(self.model_name)
 
-        if loss_fn == "DiceLoss":
+        if loss_name == "DiceLoss":
             self.loss_fn = smp.losses.DiceLoss(mode="multilabel", from_logits=True)
 
-        if optimizer == "Adam":
-            self.optimizer = optim.Adam(self.parameters(), lr=1e-3)
+        if optimizer_name == "Adam":
+            self.optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        elif optimizer_name == "SGD":
+            self.optimizer = optim.SGD(self.parameters(), lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay)
+        elif optimizer_name == "AdamW":
+            if weight_decay == 0:
+                self.weight_decay = 0.01
+            self.optimizer = optim.AdamW(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+
+        self.save_hyperparameters(ignore=["loss_fn", "optimizer", "use_early_stop"])
 
     def _load_model(self, model_name):
         model = None
@@ -84,7 +102,6 @@ class SPRSegmentModel(L.LightningModule):
         # dimension for batch
         if x.dim() == 3:
             x = x.unsqueeze(0)
-
         return x
     
     def shared_step(self, batch, stage):
@@ -110,10 +127,26 @@ class SPRSegmentModel(L.LightningModule):
         return self.shared_step(batch, "train")
 
     def validation_step(self, batch, batch_idx):
-        return self.shared_step(batch, "valid")
+        return self.shared_step(batch, "val")
 
     def test_step(self, batch, batch_idx):
         return self.shared_step(batch, "test")
 
     def configure_optimizers(self):
         return self.optimizer
+    
+    def configure_callbacks(self):
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        callbacks = []
+        if self.use_early_stop:
+            early_stop = EarlyStopping(monitor="val_iou",
+                                    patience=4,
+                                    mode="max",
+                                    verbose=True)
+            callbacks.append(early_stop)
+
+        checkpoint = ModelCheckpoint(monitor="val_loss",
+                                     filename="{epoch}-{step}-{val_loss:.3f}-{val_iou:.3f}")
+        callbacks.append(checkpoint)
+        return callbacks

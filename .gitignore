@@ -164,10 +164,10 @@ cython_debug/
 /notebooks
 
 # datasets
-/model_trainer/datasets
+/training_part/datasets
 
 # training checkpoint
-/model_server/202*
+/training_part/202*
 
 # inference result
-/model_server/inference_result*
+/serving_part/inference_result*
