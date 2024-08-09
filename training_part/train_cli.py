@@ -1,6 +1,5 @@
 import torch
 import lightning as L
-from lightning.pytorch.cli import LightningCLI
 from model_loader import SPRSegmentModel
 from data_loader import SPRDataModule
 from arg_parser import get_args
