@@ -52,8 +52,8 @@ def train_func(args):
 
 
 def main_tune(args):
-    reset_dir_for_ray_session = str(Path(__file__).parent.absolute())
-    ray.init(_temp_dir=reset_dir_for_ray_session)
+    # reset_dir_for_ray_session = str(Path(__file__).parent.parent.parent.absolute())
+    # ray.init(_temp_dir=reset_dir_for_ray_session)
 
     search_space = {
     "lr": tune.loguniform(1e-4, 1e-1),
