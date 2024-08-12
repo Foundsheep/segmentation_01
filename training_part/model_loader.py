@@ -16,8 +16,7 @@ from configs import Config
 from torch.nn.functional import softmax
 
 # TODO:
-# 1. accuracy or recall for each class to be logged 
-# 2. get model files in local host
+# 1. get model files in local host
 
 class SPRSegmentModel(L.LightningModule):
     def __init__(self, model_name, loss_name, optimizer_name, lr, use_early_stop=False, momentum=0., weight_decay=0.):
@@ -32,7 +31,18 @@ class SPRSegmentModel(L.LightningModule):
         self.model = self._load_model(self.model_name)
 
         if loss_name == "DiceLoss":
-            self.loss_fn = smp.losses.DiceLoss(mode="multilabel", from_logits=True)
+            self.loss_fn = smp.losses.DiceLoss(mode="multiclass", from_logits=True)
+        elif loss_name == "FocalLoss":
+            self.loss_fn = smp.losses.FocalLoss(mode="multiclass")
+        elif loss_name == "TverskyLoss":
+            self.loss_fn = smp.losses.TverskyLoss(mode="multiclass", from_logits=True)
+        elif loss_name == "JaccardLoss":
+            self.loss_fn = smp.losses.JaccardLoss(mode="multiclass", from_logits=True)
+        elif loss_name == "LovaszLoss":
+            self.loss_fn = smp.losses.LovaszLoss(mode="multiclass", from_logits=True)
+        else:
+            print(f"Provided loss name is wrong. {loss_name = }")
+
 
         if optimizer_name == "Adam":
             self.optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
@@ -42,7 +52,9 @@ class SPRSegmentModel(L.LightningModule):
             if weight_decay == 0:
                 self.weight_decay = 0.01
             self.optimizer = optim.AdamW(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-
+        else:
+            print(f"Provided optimizer name is wrong. {optimizer_name = }")
+            
         self.save_hyperparameters(ignore=["loss_fn", "optimizer", "use_early_stop"])
 
     def _load_model(self, model_name):
@@ -69,7 +81,7 @@ class SPRSegmentModel(L.LightningModule):
                 classes=Config.NUM_CLASSES,
             )
         else:
-            print(f"Model name is wrong. {model_name = }")
+            print(f"Provided model name is wrong. {model_name = }")
         return model
     
     def forward(self, x):
@@ -111,17 +123,21 @@ class SPRSegmentModel(L.LightningModule):
 
         preds_softmax = softmax(preds, dim=1)
         preds_argmax = preds_softmax.argmax(dim=1)
-        y_argmax = y.argmax(dim=1)
+        # y_argmax = y.argmax(dim=1)
         tp, fp, fn, tn = smp.metrics.get_stats(preds_argmax.long(), 
-                                               y_argmax.long(),
+                                               y.long(),
                                                mode="multiclass",
                                                num_classes=Config.NUM_CLASSES)
         
-        iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="macro-imagewise")
+        iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro-imagewise")
+        accuracy = smp.metrics.accuracy(tp, fp, fn, tn, reduction="micro-imagewise")
+        f1_score = smp.metrics.f1_score(tp, fp, fn, tn, reduction="micro-imagewise")
 
         self.log(f"{stage}_IoU", iou, prog_bar=True, on_epoch=True, sync_dist=True)
-        self.log(f"{stage}_loss", loss) 
-        return {"loss": loss, "iou": iou}
+        self.log(f"{stage}_accuracy", accuracy, prog_bar=True, on_epoch=True, sync_dist=True)
+        self.log(f"{stage}_f1_score", f1_score, prog_bar=True, on_epoch=True, sync_dist=True)
+        self.log(f"{stage}_loss", loss, prog_bar=True, on_epoch=True, sync_dist=True) 
+        return {"loss": loss, "iou": iou, "accuracy":accuracy, "f1_score": f1_score}
 
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch, "train")

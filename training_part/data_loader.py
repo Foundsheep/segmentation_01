@@ -64,9 +64,32 @@ class SPRDataset(Dataset):
         label_rgb = Image.open(label_path)
         label_rgb = self._adjust_ratio_and_convert_to_numpy(label_rgb)
 
-        label_mask = np.zeros((label_rgb.shape[0], label_rgb.shape[1], self.num_classes))
+        # # ------------ when to make masks in N, C, H, W
+        # label_mask = np.zeros((label_rgb.shape[0], label_rgb.shape[1], self.num_classes))
 
-        # convert label to multi dimensional [0, 1] valued image
+        # # convert label to multi dimensional [0, 1] valued image
+        # for txt_idx, txt in enumerate(self.label_txt):
+        #     divider_1 = txt.find(":")
+        #     divider_2 = txt.find("::")
+
+        #     label_name = txt[:divider_1]
+        #     label_value = txt[divider_1+1:divider_2]
+            
+        #     rgb_values = list(map(int, label_value.split(",")))
+
+        #     x, y = np.where(
+        #                 (
+        #                     (label_rgb[:, :, 0] == rgb_values[0]) & 
+        #                     (label_rgb[:, :, 1] == rgb_values[1]) & 
+        #                     (label_rgb[:, :, 2] == rgb_values[2])
+        #                 )
+        #             )
+        #     label_mask[x, y, txt_idx] = 1
+        # # ---------------------------------------------
+        
+        label_mask = np.zeros((label_rgb.shape[0], label_rgb.shape[1]))
+        
+        # convert label to integer class numbers
         for txt_idx, txt in enumerate(self.label_txt):
             divider_1 = txt.find(":")
             divider_2 = txt.find("::")
@@ -83,7 +106,8 @@ class SPRDataset(Dataset):
                             (label_rgb[:, :, 2] == rgb_values[2])
                         )
                     )
-            label_mask[x, y, txt_idx] = 1
+            
+            label_mask[x, y] = txt_idx
 
         if self.transforms:
             augmented = self.transforms(image=img, mask=label_mask)
