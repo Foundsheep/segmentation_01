@@ -179,8 +179,6 @@ class SPRDataModule(L.LightningDataModule):
         self.folder_raw = self.folder_root / "raw"
         self.folder_preprocessed = self.folder_root / "preprocessed"
         self.folder_annotated = self.folder_root / "annotated"
-        print("==========init===========\n==========init===========\n==========init===========\n")
-        print(str(self.folder_root))
     def prepare_data(self):
         """
         this part prepares data that are processed only once on CPU
