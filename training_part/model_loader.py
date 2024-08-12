@@ -8,6 +8,7 @@ import torch
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.callbacks import ModelCheckpoint
 import datetime
+import traceback
 
 import sys
 sys.path.append(str(Path(__file__).absolute().parent.parent))
@@ -19,7 +20,7 @@ from torch.nn.functional import softmax
 # 1. get model files in local host
 
 class SPRSegmentModel(L.LightningModule):
-    def __init__(self, model_name, loss_name, optimizer_name, lr, use_early_stop=False, momentum=0., weight_decay=0.):
+    def __init__(self, model_name, loss_name, optimizer_name, lr, backbone_name=None, use_early_stop=False, momentum=0., weight_decay=0.):
         super().__init__()
         self.model_name = model_name
         self.loss_name = loss_name
@@ -27,8 +28,9 @@ class SPRSegmentModel(L.LightningModule):
         self.lr = lr
         self.momentum = momentum
         self.weight_decay = weight_decay
+        self.backbone_name = backbone_name
         self.use_early_stop = use_early_stop
-        self.model = self._load_model(self.model_name)
+        self.model = self._load_model(self.model_name, self.backbone_name)
 
         if loss_name == "DiceLoss":
             self.loss_fn = smp.losses.DiceLoss(mode="multiclass", from_logits=True)
@@ -57,31 +59,59 @@ class SPRSegmentModel(L.LightningModule):
             
         self.save_hyperparameters(ignore=["loss_fn", "optimizer", "use_early_stop"])
 
-    def _load_model(self, model_name):
+    def _load_model(self, model_name, backbone_name):
         model = None
-        if model_name == "UnetPlusPlus":
-            model = smp.UnetPlusPlus(
-                encoder_name="resnet18",        # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
-                encoder_weights="imagenet",     # use `imagenet` pre-trained weights for encoder initialization
-                in_channels=3,                  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
-                classes=Config.NUM_CLASSES,     # model output channels (number of classes in your dataset)
-            )
-        elif model_name == "DeepLabV3Plus":
-            model = smp.DeepLabV3Plus(
-                encoder_name="resnet18",
-                encoder_weights="imagenet",
-                in_channels=3,
-                classes=Config.NUM_CLASSES,
-            )
-        elif model_name == "SegFormer":
-            model = smp.Unet(
-                encoder_name="mit_b1",
-                encoder_weights="imagenet",
-                in_channels=3,
-                classes=Config.NUM_CLASSES,
-            )
-        else:
-            print(f"Provided model name is wrong. {model_name = }")
+        try:
+            if model_name == "UnetPlusPlus":
+                if backbone_name is None or backbone_name == "":
+                    model = smp.UnetPlusPlus(
+                        encoder_name="resnet18",        # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
+                        encoder_weights="imagenet",     # use `imagenet` pre-trained weights for encoder initialization
+                        in_channels=3,                  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
+                        classes=Config.NUM_CLASSES,     # model output channels (number of classes in your dataset)
+                    )
+                else:
+                    model = smp.UnetPlusPlus(
+                        encoder_name=backbone_name,
+                        encoder_weights="imagenet",
+                        in_channels=3,
+                        classes=Config.NUM_CLASSES,
+                    )
+            elif model_name == "DeepLabV3Plus":
+                if backbone_name is None or backbone_name == "":
+                    model = smp.DeepLabV3Plus(
+                        encoder_name="resnet18",
+                        encoder_weights="imagenet",
+                        in_channels=3,
+                        classes=Config.NUM_CLASSES,
+                    )
+                else:
+                    model = smp.DeepLabV3Plus(
+                        encoder_name=backbone_name,
+                        encoder_weights="imagenet",
+                        in_channels=3,
+                        classes=Config.NUM_CLASSES,
+                    )
+            elif model_name == "SegFormer":
+                if backbone_name is None or backbone_name == "":
+                    model = smp.Unet(
+                        encoder_name="mit_b1",
+                        encoder_weights="imagenet",
+                        in_channels=3,
+                        classes=Config.NUM_CLASSES,
+                    )
+                else:
+                    model = smp.Unet(
+                        encoder_name=backbone_name,
+                        encoder_weights="imagenet",
+                        in_channels=3,
+                        classes=Config.NUM_CLASSES,
+                    )
+            else:
+                print(f"Provided model name is wrong. {model_name = }")
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
         return model
     
     def forward(self, x):
