@@ -135,9 +135,7 @@ class SPRSegmentModel(L.LightningModule):
     def configure_optimizers(self):
         return self.optimizer
     
-    def configure_callbacks(self):
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        
+    def configure_callbacks(self):        
         callbacks = []
         if self.use_early_stop:
             early_stop = EarlyStopping(monitor="val_iou",
