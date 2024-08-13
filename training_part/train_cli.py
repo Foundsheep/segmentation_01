@@ -50,9 +50,9 @@ def main(args):
         min_epochs=args.min_epochs,
         max_epochs=args.max_epochs,
         log_every_n_steps=args.log_every_n_steps,
-        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}" + \
-            f"_{args.backbone_name}" if args.backbone_name else "" + \
-            f"_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"
+        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.backbone_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"\
+            if args.backbone_name else\
+            f"/{timestamp}_{args.model_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"
     )
 
 
