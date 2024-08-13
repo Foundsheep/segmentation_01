@@ -176,3 +176,4 @@ cython_debug/
 /serving_part/model_store/*.ckpt
 /serving_part/model_store/*.pt
 /serving_part/model_store/*.pth
+/serving_part/model_store/*.mar

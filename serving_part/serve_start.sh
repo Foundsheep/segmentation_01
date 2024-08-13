@@ -1,0 +1,1 @@
+torchserve --start --ncs --model-store model_store --models spr_seg.mar --disable-token-auth
