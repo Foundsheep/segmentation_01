@@ -52,7 +52,7 @@ def main(args):
         log_every_n_steps=args.log_every_n_steps,
         default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.backbone_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"\
             if args.backbone_name else\
-            f"/{timestamp}_{args.model_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"
+            args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"
     )
 
 
