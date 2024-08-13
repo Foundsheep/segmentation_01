@@ -12,20 +12,7 @@ sys.path.append(str(Path(__file__).absolute().parent.parent))
 
 from utils.preprocess import erase_coloured_text_and_lines, get_transforms
 from configs import Config
-
-
-# def load_data(root, is_train, shuffle, batch_size, num_workers):
-#     dl = None
-#     ds = SPRDataset(root, is_train)
-#     try:
-#         dl = DataLoader(ds,
-#                         shuffle=shuffle,
-#                         batch_size=batch_size,
-#                         num_workers=num_workers,
-#                         persistent_workers=True)
-#     except:
-#         print("DataLoader count not be defined")
-#     return dl
+import json
 
 
 class SPRDataset(Dataset):
@@ -42,10 +29,10 @@ class SPRDataset(Dataset):
                  is_train=True, 
                  transforms=None):
         super().__init__()
-        self.ds_root = ds_root
-        self.folder_raw = Path(self.ds_root) / Path("raw")
-        self.folder_preprocessed = Path(self.ds_root) / Path("preprocessed")
-        self.folder_annotated = Path(self.ds_root) / Path("annotated")
+        self.ds_root = Path(ds_root)
+        self.folder_raw = self.ds_root / "raw"
+        self.folder_preprocessed = self.ds_root / "preprocessed"
+        self.folder_annotated = self.ds_root / "annotated"
         self.is_train = is_train
         self.transforms = transforms
         self.image_list, self.label_list, self.label_txt = self._read_paths()
@@ -168,25 +155,6 @@ class SPRDataset(Dataset):
         
         return img_new
         
-    # TODO: if not used, remove it
-    def _make_mapping_dict(self):
-        """
-        make dictionaries that map label to name and name to label
-        so that they could be later used in inference to show the labels' correspondent name
-        """
-        label_to_name_map = {}
-        name_to_label_map = {}
-
-        for txt_idx, txt in enumerate(self.label_txt):
-            divider_1 = txt.find(":")
-            label_name = txt[:divider_1]
-
-            label_to_name_map[txt_idx] = label_name
-            name_to_label_map[label_name] = txt_idx
-
-        return label_to_name_map, name_to_label_map
-
-    
 
 class SPRDataModule(L.LightningDataModule):
     def __init__(self, root, batch_size, shuffle, dl_num_workers, data_split=True, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
@@ -209,7 +177,8 @@ class SPRDataModule(L.LightningDataModule):
         and don't need to be done more than that
         """
         self._pre_process_image()
-
+        self._make_mapping_dict()
+        
         if self.data_split:
             split_result = self._split_data(root=self.root,
                                             train_ratio=self.train_ratio,
@@ -382,6 +351,41 @@ class SPRDataModule(L.LightningDataModule):
             count += 1
         print(f"test saved [{count}] files, {num_test = }")
         return success
+
+    def _make_mapping_dict(self):
+        """
+        make dictionaries that map label to name and name to label
+        so that they could be later used in inference to show the labels' correspondent name
+        """
+        root_as_p = Path(self.root)
+        labeltxt_path = root_as_p / Path("annotated") / Path("labelmap.txt")
+        
+        with open(str(labeltxt_path), "r") as f:
+            # first line is asuumed to have title
+            label_txt = f.readlines()[1:]
+            
+        label_to_name_map = {}
+        name_to_label_map = {}
+        for txt_idx, txt in enumerate(label_txt):
+            divider_1 = txt.find(":")
+            label_name = txt[:divider_1]
+
+            label_to_name_map[txt_idx] = label_name
+            name_to_label_map[label_name] = txt_idx
+
+        # save to json files for inference
+        save_path_1 = root_as_p / "label_to_name.json"
+        save_path_2 = root_as_p / "name_to_label.json"
+        
+        if not save_path_1.exists() and not save_path_2.exists():
+            with open(str(save_path_1), "w") as outfile:
+                json.dump(label_to_name_map, outfile)
+            with open(str(save_path_2), "w") as outfile:
+                json.dump(name_to_label_map, outfile)                
+            print("json files saved for inference!")
+        else:
+            print("either of json files exists, so didn't make them all")   
+
 
     def setup(self, stage: str):
         if stage == "fit":
