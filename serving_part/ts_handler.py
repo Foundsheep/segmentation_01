@@ -1,18 +1,19 @@
 import torch
 from pathlib import Path
 import numpy as np
-import sys
-sys.path.append(str(Path(__file__).absolute().parent.parent))
+# import sys
+# sys.path.append(str(Path(__file__).absolute().parent.parent))
 
-from utils.image_utils import erase_coloured_text_and_lines, get_transforms, get_label_info
+from image_utils import erase_coloured_text_and_lines, get_transforms, get_label_info
 import torch.nn.functional as F
 from ts.torch_handler.base_handler import BaseHandler
 from PIL import Image
 import datetime
+import io
 
 class SPRModelHandler(BaseHandler):
     def __init__(self):
-        super().__init__()
+        # super().__init__()
         self._context = None
         self.initialized = False
         self.explain = False
@@ -24,8 +25,22 @@ class SPRModelHandler(BaseHandler):
     
     def preprocess(self, data):
         transforms = get_transforms(is_train=False)
-        
+        print("===============")
+        print(data)
+        print(type(data))
+        print("===============")
         image = data[0].get("data")
+        if image is None:
+            image = data[0].get("body")
+            
+        
+        print("===============")
+        print(image)
+        print(type(image))
+        print("===============")
+        if isinstance(image, bytearray):
+            image = np.array(Image.open(io.BytesIO(image)))
+        
         transformed = transforms(image=np.asarray(image))
         image = transformed["image"]
         return image
