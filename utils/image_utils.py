@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from configs import Config
+import traceback
 
 def erase_coloured_text_and_lines(img_path):
     # 1. 하늘색 HSV : 186, 98%, 95%
@@ -48,3 +49,34 @@ def get_transforms(is_train):
             ToTensorV2(transpose_mask=True),
         ])
     return transforms 
+
+
+def get_label_info(labeltxt_path):
+    try:
+        with open(labeltxt_path, "r") as f:
+            label_txt = f.readlines()[1:]
+    except Exception as e:
+        print(e) 
+        traceback.print_exc()
+        label_txt = None
+        
+    label_to_rgb = {}
+    if label_txt is None:
+        label_to_rgb[0] = [0, 0, 0] # background
+        label_to_rgb[1] = [255, 96, 55] # lower
+        label_to_rgb[2] = [221, 255, 51] # middle
+        label_to_rgb[3] = [61, 245, 61] # rivet
+        label_to_rgb[4] = [61, 61, 245] # upper
+        
+    else:
+        for txt_idx, txt in enumerate(label_txt):
+            divider_1 = txt.find(":")
+            divider_2 = txt.find("::")
+
+            label_name = txt[:divider_1]
+            label_value = txt[divider_1+1:divider_2]
+            rgb_values = list(map(int, label_value.split(",")))
+
+            label_to_rgb[txt_idx] = rgb_values
+
+    return label_to_rgb

@@ -10,7 +10,7 @@ import random
 import sys
 sys.path.append(str(Path(__file__).absolute().parent.parent))
 
-from utils.preprocess import erase_coloured_text_and_lines, get_transforms
+from utils.image_utils import erase_coloured_text_and_lines, get_transforms
 from configs import Config
 import json
 

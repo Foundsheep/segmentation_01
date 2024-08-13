@@ -171,3 +171,8 @@ cython_debug/
 
 # inference result
 /serving_part/inference_result*
+
+# largel model
+/serving_part/model_store/*.ckpt
+/serving_part/model_store/*.pt
+/serving_part/model_store/*.pth

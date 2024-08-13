@@ -5,7 +5,7 @@ print(Path.cwd().parent)
 sys.path.append(str(Path.cwd().parent))
 
 from training_part.model_loader import SPRSegmentModel
-from utils.preprocess import get_transforms
+from utils.image_utils import get_transforms
 import datetime
 from PIL import Image
 import numpy as np
