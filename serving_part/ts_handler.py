@@ -1,16 +1,17 @@
 import torch
 from pathlib import Path
 import numpy as np
-# import sys
-# sys.path.append(str(Path(__file__).absolute().parent.parent))
 
-from image_utils import erase_coloured_text_and_lines, get_transforms, get_label_info
 import torch.nn.functional as F
 from ts.torch_handler.base_handler import BaseHandler
 from PIL import Image
 import datetime
 import io
+
+# the below two files follow the path for /tmp/model/.../
+# where all model_store files are copied to
 from model_loader import SPRSegmentModel
+from image_utils import erase_coloured_text_and_lines, get_transforms, get_label_info
 
 class SPRModelHandler(BaseHandler):
     def __init__(self):
@@ -36,6 +37,7 @@ class SPRModelHandler(BaseHandler):
             optimizer_name=optimizer_name,
             lr=lr
         )
+        self.model.eval()
         
         # properties
         properties = context.system_properties
@@ -58,6 +60,7 @@ class SPRModelHandler(BaseHandler):
     def inference(self, model_input):
         return self.model.forward(model_input)
 
+    # TODO: change the image size to its original
     def postprocess(self, inference_output):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         
@@ -85,14 +88,7 @@ class SPRModelHandler(BaseHandler):
         save_path = save_folder / "output.png"
         out_img.save(save_path)
                 
-        # # return pixels
-        # return_dict = {}
-        # predicted_classes = np.unique(out_2d)
-        # total_pixels = out_2d.size
-        # for predicted_cl in predicted_classes:
-        #     count = np.count_nonzero(out_2d == predicted_cl)
-        #     return_dict[predicted_cl] = count / total_pixels
-        
+        # to return        
         output = np.expand_dims(out_3d, axis=0)
         output = output.tolist()
         return output
