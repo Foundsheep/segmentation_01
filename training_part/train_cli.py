@@ -1,12 +1,14 @@
 import torch
 import lightning as L
-from arg_parser import get_args
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).absolute().parent.parent))
+project_root = str(Path(__file__).absolute().parent.parent)
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 import datetime
 
+from arg_parser import get_args
 from model_loader import SPRSegmentModel
 from data_loader import SPRDataModule
 from configs import Config

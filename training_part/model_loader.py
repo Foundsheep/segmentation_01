@@ -11,7 +11,9 @@ import datetime
 import traceback
 
 import sys
-sys.path.append(str(Path(__file__).absolute().parent.parent))
+project_root = str(Path(__file__).absolute().parent.parent)
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 from configs import Config
 from torch.nn.functional import softmax

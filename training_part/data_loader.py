@@ -8,7 +8,9 @@ import lightning as L
 import random
 
 import sys
-sys.path.append(str(Path(__file__).absolute().parent.parent))
+project_root = str(Path(__file__).absolute().parent.parent)
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 from utils.image_utils import erase_coloured_text_and_lines, get_transforms
 from configs import Config
