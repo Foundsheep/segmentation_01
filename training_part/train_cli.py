@@ -1,11 +1,14 @@
 import torch
 import lightning as L
-from model_loader import SPRSegmentModel
-from data_loader import SPRDataModule
 from arg_parser import get_args
 import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).absolute().parent.parent))
+
 import datetime
 
+from model_loader import SPRSegmentModel
+from data_loader import SPRDataModule
 from configs import Config
 
 def main(args):
@@ -65,7 +68,7 @@ def main(args):
     trainer.test(ckpt_path="best",
                  datamodule=dm)
 
-    example_input = torch.randn(3, Config.TARGET_HEIGHT, Config.TARGET_WIDTH)
+    example_input = torch.randn(3, Config.RESIZED_HEIGHT, Config.RESIZED_WIDTH)
     script_model = model.to_torchscript(method="trace", example_inputs=example_input)
     
     torch.jit.save(script_model, f"{default_root_dir}/script_model.pt")
