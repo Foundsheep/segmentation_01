@@ -1,11 +1,11 @@
 import torch
 import lightning as L
+from model_loader import SPRSegmentModel
+from data_loader import SPRDataModule
 from arg_parser import get_args
 import sys
 import datetime
 
-from model_loader import SPRSegmentModel
-from data_loader import SPRDataModule
 from configs import Config
 
 def main(args):
