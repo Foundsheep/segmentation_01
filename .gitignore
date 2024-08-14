@@ -180,3 +180,6 @@ cython_debug/
 
 # serving logs
 /serving_part/logs
+
+# model-specific file
+/serving_part/model_store/hparams.yaml

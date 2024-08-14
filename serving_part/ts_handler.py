@@ -10,10 +10,11 @@ from ts.torch_handler.base_handler import BaseHandler
 from PIL import Image
 import datetime
 import io
+from model_loader import SPRSegmentModel
 
 class SPRModelHandler(BaseHandler):
     def __init__(self):
-        # super().__init__()
+        super().__init__()
         self._context = None
         self.initialized = False
         self.explain = False
@@ -22,22 +23,31 @@ class SPRModelHandler(BaseHandler):
     def initialize(self, context):
         self._context = context
         self.initialized = True
+        
+        # model init
+        model_config = context.model_yaml_config
+        model_name = model_config["model_name"]
+        loss_name = model_config["loss_name"]
+        lr = model_config["lr"]
+        optimizer_name = model_config["optimizer_name"]
+        self.model = SPRSegmentModel(
+            model_name=model_name,
+            loss_name=loss_name,
+            optimizer_name=optimizer_name,
+            lr=lr
+        )
+        
+        # properties
+        properties = context.system_properties
+        self.model_dir = properties["model_dir"]
+        
     
     def preprocess(self, data):
         transforms = get_transforms(is_train=False)
-        print("===============")
-        print(data)
-        print(type(data))
-        print("===============")
         image = data[0].get("data")
         if image is None:
             image = data[0].get("body")
             
-        
-        print("===============")
-        print(image)
-        print(type(image))
-        print("===============")
         if isinstance(image, bytearray):
             image = np.array(Image.open(io.BytesIO(image)))
         
@@ -57,7 +67,7 @@ class SPRModelHandler(BaseHandler):
         out_3d = np.stack([out_2d] * 3, axis=2) # H, W, C
         
         # colouring
-        labeltxt_path = "./model_store/labelmap.txt"
+        labeltxt_path = self.model_dir + "/labelmap.txt"
         label_info = get_label_info(labeltxt_path=labeltxt_path)
         
         for class_num, rgb in label_info.items():
@@ -74,17 +84,21 @@ class SPRModelHandler(BaseHandler):
 
         save_path = save_folder / "output.png"
         out_img.save(save_path)
+                
+        # # return pixels
+        # return_dict = {}
+        # predicted_classes = np.unique(out_2d)
+        # total_pixels = out_2d.size
+        # for predicted_cl in predicted_classes:
+        #     count = np.count_nonzero(out_2d == predicted_cl)
+        #     return_dict[predicted_cl] = count / total_pixels
         
-        # return pixels
-        return_dict = {}
-        predicted_classes = np.unique(out_2d)
-        total_pixels = out_2d.size
-        for predicted_cl in predicted_classes:
-            count = np.count_nonzero(out_2d == predicted_cl)
-            return_dict[predicted_cl]
-        return return_dict
+        output = np.expand_dims(out_3d, axis=0)
+        output = output.tolist()
+        return output
     
     def handle(self, data, context):
         model_input = self.preprocess(data)
         model_output = self.inference(model_input)
         return self.postprocess(model_output)
+    

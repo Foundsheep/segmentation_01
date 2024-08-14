@@ -1,6 +1,0 @@
-loss_name: FocalLoss
-lr: 0.001
-model_name: UnetPlusPlus
-momentum: 0.0
-optimizer_name: Adam
-weight_decay: 0.0
