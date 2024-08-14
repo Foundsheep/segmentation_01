@@ -6,6 +6,8 @@ class Config():
     RESIZED_HEIGHT = 640
     RESIZED_WIDTH = 960
     TARGET_IMAGE_RATIO = 0.75
+    TARGET_HEIGHT = 1920
+    TARGET_WIDTH = 2560
 
     # model
     MODEL_NAME = "UnetPlusPlus"

@@ -5,7 +5,7 @@
 - Virtual environment is needed
    - `virtualenv .venv -p python3.10`(automatically activates the venv)
    - `pip install -r requirements.txt`
-- The model checkpoint should be located in `model_store` folder as `model.ckpt`
+- The serialised model file should be located in `model_store` folder as `model.pt`
 - The model's training-related files should be located in `model_store` to be loaded when `torchserve` starts. Those files are as follows
    - `label_to_name.json`
    - `name_to_label.json`(currently, not used though)
@@ -26,7 +26,9 @@
    5. `sh serve_stop.sh`(when wanting to stop)
 
 3. Other infomation
-- This serving logic follows `torchserve`'s `eager mode` model loading logic
+- This serving logic follows `torchserve`'s `script mode` model loading logic
+- `eager model` loading logic is executed if `--model-file` argument is passed when invoking `torch-model-archiver`, however this would cause the model to be loaded either from checkpoint, or initialized brand-new.
+   - The checkpoint-using loading way is commented in `ts_handler.py`, and uncommenting it and commenting `super().initialize(context)` would change the loading logic to `eager model` with checkpoint
 
 
 ### Training

@@ -6,4 +6,4 @@ torch-model-archiver --model-name spr_seg \
 --handler ts_handler.py \
 --config-file ./model_store/hparams.yaml
 
-# --model-file ../training_part/model_loader.py \
+# --model-file ../training_part/model_loader.py \ # this will force the model initialized, not using model.pt
