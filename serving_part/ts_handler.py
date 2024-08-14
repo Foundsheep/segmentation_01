@@ -8,9 +8,7 @@ from PIL import Image
 import datetime
 import io
 
-# the below two files follow the path for /tmp/model/.../
-# where all model_store files are copied to
-from model_loader import SPRSegmentModel
+# it's not utils.image_utils because the path is different in torchserve production
 from image_utils import erase_coloured_text_and_lines, get_transforms, get_label_info
 
 class SPRModelHandler(BaseHandler):
@@ -20,48 +18,46 @@ class SPRModelHandler(BaseHandler):
         self.initialized = False
         self.explain = False
         self.target = 0
+        self.transforms = get_transforms(is_train=False)
         
     def initialize(self, context):
+        super().initialize(context)
         self._context = context
         self.initialized = True
-        
-        # model init
-        model_config = context.model_yaml_config
-        model_name = model_config["model_name"]
-        loss_name = model_config["loss_name"]
-        lr = model_config["lr"]
-        optimizer_name = model_config["optimizer_name"]
-        self.model = SPRSegmentModel(
-            model_name=model_name,
-            loss_name=loss_name,
-            optimizer_name=optimizer_name,
-            lr=lr
-        )
-        self.model.eval()
+
+        # checkpoint_path = context.manifest["model"]["serializedFile"]
+        # self.model = SPRSegmentModel.load_from_checkpoint(checkpoint_path)
+        # self.model.eval()
         
         # properties
         properties = context.system_properties
-        self.model_dir = properties["model_dir"]
-        
+        self.model_dir = properties["model_dir"]        
     
     def preprocess(self, data):
-        transforms = get_transforms(is_train=False)
         image = data[0].get("data")
         if image is None:
             image = data[0].get("body")
             
         if isinstance(image, bytearray):
             image = np.array(Image.open(io.BytesIO(image)))
+        elif isinstance(image, Image.Image):
+            image = np.array(image)
+        elif isinstance(image, np.ndarray):
+            image = image
+        else:
+            print(f"Unexpected image type: [{type(image)}]")
         
-        transformed = transforms(image=np.asarray(image))
+        image = erase_coloured_text_and_lines(image)
+        h, w = image.shape[:2]
+        transformed = self.transforms(image=image)
         image = transformed["image"]
-        return image
+        return image, h, w
     
     def inference(self, model_input):
         return self.model.forward(model_input)
 
     # TODO: change the image size to its original
-    def postprocess(self, inference_output):
+    def postprocess(self, inference_output, h, w):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         
         out = F.softmax(inference_output, dim=1) # N, C, H, W
@@ -87,14 +83,14 @@ class SPRModelHandler(BaseHandler):
 
         save_path = save_folder / "output.png"
         out_img.save(save_path)
-                
+
         # to return        
         output = np.expand_dims(out_3d, axis=0)
         output = output.tolist()
         return output
     
     def handle(self, data, context):
-        model_input = self.preprocess(data)
+        model_input, h, w = self.preprocess(data)
         model_output = self.inference(model_input)
-        return self.postprocess(model_output)
+        return self.postprocess(model_output, h, w)
     

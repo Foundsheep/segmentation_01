@@ -12,8 +12,13 @@ def erase_coloured_text_and_lines(img_path):
     #               118, 98%, 65%
     #               118, 98%, 35%
     # 3. 빨강 HSV : 0, 98%, 65%
-    img = cv2.imread(img_path)
-    image = img.copy()
+    if isinstance(img_path, str):
+        img = cv2.imread(img_path)
+        image = img.copy()
+    elif isinstance(img_path, np.ndarray):
+        image = img_path
+    else:
+        image = np.array(img_path)
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # 위의 기준보다 좀 더 널럴하게 Saturation 맞췄음. 아닐 경우 잘 인지 안 됨

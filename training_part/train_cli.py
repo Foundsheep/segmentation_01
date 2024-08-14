@@ -35,7 +35,7 @@ def main(args):
                                 use_early_stop=args.use_early_stop,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
-    
+
     dm = SPRDataModule(root=args.root,
                        batch_size=args.batch_size,
                        shuffle=args.shuffle,
@@ -45,14 +45,17 @@ def main(args):
                        val_ratio=args.val_ratio,
                        test_ratio=args.test_ratio)
 
+    if args.backbone_name:
+        default_root_dir = f"{args.train_log_folder}/{timestamp}_{args.model_name}_{args.backbone_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"
+    else:
+        default_root_dir = f"{args.train_log_folder}/{timestamp}_{args.model_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"
+
     trainer = L.Trainer(
         accelerator="gpu" if args.device == "cuda" else "cpu",
         min_epochs=args.min_epochs,
         max_epochs=args.max_epochs,
         log_every_n_steps=args.log_every_n_steps,
-        default_root_dir=args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.backbone_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"\
-            if args.backbone_name else\
-            args.train_log_folder + f"/{timestamp}_{args.model_name}_{args.loss_name}_batch{args.batch_size}_epoch{args.max_epochs}_lr{args.lr}"
+        default_root_dir=default_root_dir            
     )
 
 
@@ -61,6 +64,10 @@ def main(args):
     trainer.test(ckpt_path="best",
                  datamodule=dm)
 
+    script_model = model.to_torchscript()
+    torch.jit.save(script_model, f"{default_root_dir}/script_model.pt")
+    print("Torch script model has been saved!")
+    
 if __name__ == "__main__":
     args = get_args()
     main(args)

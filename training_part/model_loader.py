@@ -131,7 +131,7 @@ class SPRSegmentModel(L.LightningModule):
         elif isinstance(img, torch.Tensor):
             x = img
         else:
-            raise TypeError(f"image should be either PIL.Image.Image or numpy.ndarray. Input type is {type(img)}")
+            raise TypeError(f"image should be one of the PIL.Image.Image or numpy.ndarray or torch.Tensor. Input type is {type(img)}")
 
         # C, H, W
         if x.size()[0] != 3:
