@@ -25,6 +25,7 @@ class SPRModelHandler(BaseHandler):
         self._context = context
         self.initialized = True
 
+        # when using torch eager mode
         # checkpoint_path = context.manifest["model"]["serializedFile"]
         # self.model = SPRSegmentModel.load_from_checkpoint(checkpoint_path)
         # self.model.eval()
@@ -64,8 +65,9 @@ class SPRModelHandler(BaseHandler):
     def postprocess(self, inference_output, h, w):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         
+        # when using onnx
         inference_output = torch.from_numpy(np.array(inference_output[0]))
-        print(f"================= {inference_output.shape}")
+        
         out = F.softmax(inference_output, dim=1) # N, C, H, W
         out = out.argmax(1) # N, H, W
         out_2d = out.squeeze(0).cpu().numpy().astype(np.uint8) # H, W

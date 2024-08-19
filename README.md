@@ -26,10 +26,13 @@
    5. `sh serve_stop.sh`(when wanting to stop)
 
 3. Other infomation
-- This serving logic follows `torchserve`'s `script mode` model loading logic
+<!-- - This serving logic follows `torchserve`'s `script mode` model loading logic
 - `eager model` loading logic is executed if `--model-file` argument is passed when invoking `torch-model-archiver`, however this would cause the model to be loaded either from checkpoint, or initialized brand-new.
-   - The checkpoint-using loading way is commented in `ts_handler.py`, and uncommenting it and commenting `super().initialize(context)` would change the loading logic to `eager model` with checkpoint
-
+   - The checkpoint-using loading way is commented in `ts_handler.py`, and uncommenting it and commenting `super().initialize(context)` would change the loading logic to `eager model` with checkpoint -->
+   - This serving logic follows `torchserve`s `onnx` model loading logic
+      - reference : https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html
+      - `super().initialize(context)` load a model
+   - This serving code assumes to receive one file at an inference time
 
 ### Training
 1. Prerequisites
@@ -42,5 +45,6 @@
    1. go to `.../training_part`
    2. `python train_cli.py --root <dataset_dir_path> --other_arguments`
    3. check the training logs and checkpoint file in `./{timestamp}_{model_name}...` directory
-   4. `hparams.yaml` and `epock....ckpt` are to be used in serving, so copy them to `../serving_part/model_store`
-      - `.ckpt` file should be copied as `model.ckpt`
+   <!-- 4. `hparams.yaml` and `epock....ckpt` are to be used in serving, so copy them to `../serving_part/model_store`
+      - `.ckpt` file should be copied as `model.ckpt` -->
+   4. `hparams.yaml` and `model.onnx` are to be used in serving, so copy them to `../serving_part/model_store`
