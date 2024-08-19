@@ -70,11 +70,16 @@ def main(args):
     trainer.test(ckpt_path="best",
                  datamodule=dm)
 
-    example_input = torch.randn(3, Config.RESIZED_HEIGHT, Config.RESIZED_WIDTH)
-    script_model = model.to_torchscript(method="trace", example_inputs=example_input, strict=False)
-    
-    torch.jit.save(script_model, f"{default_root_dir}/script_model.pt")
-    print("Torch script model has been saved!")
+    example_input = torch.randn(3, Config.TARGET_HEIGHT, Config.TARGET_WIDTH)
+    # script_model = model.to_torchscript(method="trace", example_inputs=example_input, strict=False)    
+    # torch.jit.save(script_model, f"{default_root_dir}/script_model.pt")
+    # print("Torch script model has been saved!")
+
+    model.to_onnx(
+        file_path=f"{default_root_dir}/model.onnx",
+        input_sample=example_input,
+        export_params=True
+    )
     
 if __name__ == "__main__":
     args = get_args()
