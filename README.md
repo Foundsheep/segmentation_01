@@ -5,7 +5,7 @@
 - Virtual environment is needed
    - `virtualenv .venv -p python3.10`(automatically activates the venv)
    - `pip install -r requirements.txt`
-- The serialised model file should be located in `model_store` folder as `model.pt`
+- The serialised model file should be located in `model_store` folder as `model.onnx`
 - The model's training-related files should be located in `model_store` to be loaded when `torchserve` starts. Those files are as follows
    - `label_to_name.json`
    - `name_to_label.json`(currently, not used though)
