@@ -64,7 +64,7 @@ class SPRModelHandler(BaseHandler):
     def postprocess(self, inference_output, h, w):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         
-        inference_output = torch.from_numpy(np.array(inference_output))
+        inference_output = torch.from_numpy(np.array(inference_output[0]))
         print(f"================= {inference_output.shape}")
         out = F.softmax(inference_output, dim=1) # N, C, H, W
         out = out.argmax(1) # N, H, W
