@@ -55,7 +55,7 @@ class SPRModelHandler(BaseHandler):
     
     def inference(self, model_input):
         # return self.model.forward(model_input) # when using torchscript or torch eager mode
-        return self.model.run(output_names=None, input_feed=model_input)
+        return self.model.run(output_names=None, input_feed=model_input.numpy())
 
     # TODO: change the image size to its original
     def postprocess(self, inference_output, h, w):
