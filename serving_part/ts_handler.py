@@ -57,7 +57,7 @@ class SPRModelHandler(BaseHandler):
         # return self.model.forward(model_input) # when using torchscript or torch eager mode
         
         # when using onnx
-        ort_inputs = {self.model.get_inputs()[0].name: model_input.numpy().transpose(1, 2, 0)}
+        ort_inputs = {self.model.get_inputs()[0].name: model_input.numpy()}
         return self.model.run(output_names=None, input_feed=ort_inputs)
 
     # TODO: change the image size to its original
