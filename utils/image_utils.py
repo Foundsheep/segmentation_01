@@ -44,6 +44,7 @@ def get_transforms(is_train):
             A.HorizontalFlip(),
             A.GridDistortion(),            
             A.Blur(),
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), contrast_limit=(-0.3, 0.3)),
             A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ToTensorV2(transpose_mask=True),
         ])
