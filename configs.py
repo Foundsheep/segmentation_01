@@ -3,7 +3,7 @@ from pathlib import Path
 
 class Config():
     # preprocess
-    RESIZED_HEIGHT = 640
+    RESIZED_HEIGHT = 720
     RESIZED_WIDTH = 960
     TARGET_IMAGE_RATIO = 0.75
     TARGET_HEIGHT = 1920

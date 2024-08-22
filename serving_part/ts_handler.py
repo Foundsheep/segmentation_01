@@ -83,6 +83,7 @@ class SPRModelHandler(BaseHandler):
             
         # save
         out_img = Image.fromarray(out_3d)
+        out_img = out_img.resize((h, w))
         
         save_folder = Path(f"./inference_result_{timestamp}")
         if not save_folder.exists():
