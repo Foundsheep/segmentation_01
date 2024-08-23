@@ -61,7 +61,6 @@ class SPRModelHandler(BaseHandler):
         ort_inputs = {self.model.get_inputs()[0].name: model_input.numpy()}
         return self.model.run(output_names=None, input_feed=ort_inputs)
 
-    # TODO: change the image size to its original
     def postprocess(self, inference_output, h, w):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         
@@ -90,9 +89,11 @@ class SPRModelHandler(BaseHandler):
             save_folder.mkdir()
             print(f"[{str(save_folder)} is made]")
 
+        # TODO: save path to be decided
         save_path = save_folder / "output.png"
         out_img.save(save_path)
-
+        
+        # TODO: output also needs to be returned to its original size?
         # to return        
         output = np.expand_dims(out_3d, axis=0)
         output = output.tolist()
