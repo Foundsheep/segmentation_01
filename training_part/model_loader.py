@@ -169,8 +169,24 @@ class SPRSegmentModel(L.LightningModule):
         self.log(f"{stage}_accuracy", accuracy, prog_bar=True, on_epoch=True, sync_dist=True)
         self.log(f"{stage}_f1_score", f1_score)
         self.log(f"{stage}_loss", loss, prog_bar=True, on_epoch=True, sync_dist=True) 
+        
+        
         return {"loss": loss, "iou": iou, "accuracy":accuracy, "f1_score": f1_score}
 
+    def on_fit_start(self):
+        tb = self.logger.experiment
+        
+        layout = {
+            "training_result": {
+                "loss": ["Multiline", ["train_loss", "val_loss"]],
+                "accuracy": ["Multiline", ["train_accuracy", "val_accuracy"]],
+                "IoU": ["Multiline", ["train_IoU", "val_IoU"]],
+                "f1_score": ["Multiline", ["train_f1_score", "val_f1_score"]],
+            }
+        }
+
+        tb.add_custom_scalars(layout)
+        
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch, "train")
 
