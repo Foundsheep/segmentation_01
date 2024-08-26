@@ -32,7 +32,6 @@ class SPRDataset(Dataset):
                  transforms=None):
         super().__init__()
         self.ds_root = Path(ds_root)
-        self.folder_raw = self.ds_root / "raw"
         self.folder_preprocessed = self.ds_root / "preprocessed"
         self.folder_annotated = self.ds_root / "annotated"
         self.is_train = is_train
@@ -105,13 +104,15 @@ class SPRDataset(Dataset):
         return img, label_mask
     
     def _read_paths(self):
-        image_list = list(self.folder_preprocessed.glob("*.png")) + list(self.folder_preprocessed.glob("*.jpg"))
-
+        # image_list = list(self.folder_preprocessed.glob("*.png")) + list(self.folder_preprocessed.glob("*.jpg"))
+        image_list = list(self.folder_preprocessed.glob("*"))
+        
         # if processed files have .png extension, keep it, else convert it to match labels' original format
         label_list = [self.folder_annotated / Path(p.parts[-1] \
                                                    if p.parts[-1].endswith(".png")
                                                    else p.parts[-1][:-4] + ".png") for p in image_list]
 
+        assert len(image_list) == len(label_list), f"{len(image_list) = }, {len(label_list)}"
         # to convert label image to multi dimensional [0,1] valued image
         label_map_path = self.folder_annotated / Path("labelmap.txt")
         with open(str(label_map_path), "r") as f:
