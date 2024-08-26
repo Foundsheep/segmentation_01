@@ -158,7 +158,8 @@ class SPRDataset(Dataset):
             img_new = np.pad(img_np, ((0, 0), (half_new_w, another_half), (0, 0)), "reflect")
             # print(f"new ratio: [{img_new.shape[0] / img_new.shape[1]}], new_width: [{img_new.shape[1]}]")
 
-        assert f"{target_ratio :.2f}" == f"{new_ratio :.2f}"        
+        new_ratio = img_new.shape[0] / img_new.shape[1]
+        assert f"{target_ratio :.2f}" == f"{new_ratio :.2f}", f"{target_ratio =}, {new_ratio =}"
         return img_new
         
 
