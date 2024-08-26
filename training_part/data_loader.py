@@ -130,6 +130,7 @@ class SPRDataset(Dataset):
         if ratio == target_ratio:
             return np.array(img)
         
+        new_ratio = 0.00
         elif ratio < target_ratio:
             # print(f"img_path: [{img_path}] image's height is shorter than the standard")
             new_h = int(w * target_ratio)
@@ -141,10 +142,10 @@ class SPRDataset(Dataset):
             
             img_np = np.array(img)
             img_new = np.pad(img_np, ((half_new_h, another_half), (0, 0), (0, 0)), "reflect")
-            print(f"new ratio: [{img_new.shape[0] / img_new.shape[1]}], new_height: [{img_new.shape[0]}]")
+            # print(f"new ratio: [{img_new.shape[0] / img_new.shape[1]}], new_height: [{img_new.shape[0]}]")
             
         else:
-            print(f"img_path: [{img_path}] image's width is shorter than the standard")
+            # print(f"img_path: [{img_path}] image's width is shorter than the standard")
             new_w = int(h / target_ratio)
             half_new_w = (new_w - w) // 2
             if 2 * half_new_w != new_w:
@@ -154,8 +155,9 @@ class SPRDataset(Dataset):
             
             img_np = np.array(img)
             img_new = np.pad(img_np, ((0, 0), (half_new_w, another_half), (0, 0)), "reflect")
-            print(f"new ratio: [{img_new.shape[0] / img_new.shape[1]}], new_width: [{img_new.shape[1]}]")
-        
+            # print(f"new ratio: [{img_new.shape[0] / img_new.shape[1]}], new_width: [{img_new.shape[1]}]")
+
+        assert f"{target_ratio :.2f}" == f"{new_ratio :.2f}"        
         return img_new
         
 
