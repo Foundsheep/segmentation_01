@@ -127,10 +127,11 @@ class SPRDataset(Dataset):
         h = img.height
         w = img.width
         ratio = h / w
+        new_ratio = 0.00
+
         if ratio == target_ratio:
             return np.array(img)
         
-        new_ratio = 0.00
         elif ratio < target_ratio:
             # print(f"img_path: [{img_path}] image's height is shorter than the standard")
             new_h = int(w * target_ratio)
