@@ -61,7 +61,8 @@ def main(args):
         min_epochs=args.min_epochs,
         max_epochs=args.max_epochs,
         log_every_n_steps=args.log_every_n_steps,
-        default_root_dir=default_root_dir            
+        default_root_dir=default_root_dir,
+        gpus=1            
     )
 
 
