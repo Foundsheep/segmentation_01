@@ -103,8 +103,8 @@ class SPRDataset(Dataset):
             label_mask = augmented["mask"]
             
         if idx % 10 == 0:
-            Image.fromarray(img).save(f"temp_images/img_{str(idx).zfill(5)}.png")
-            Image.fromarray(label_mask).save(f"temp_images/lab_{str(idx).zfill(5)}.png")
+            Image.fromarray(img.numpy().transpose(2, 0, 1)).save(f"temp_images/img_{str(idx).zfill(5)}.png")
+            Image.fromarray(label_mask.numpy().transpose(2, 0, 1)).save(f"temp_images/lab_{str(idx).zfill(5)}.png")
         return img, label_mask
     
     def _read_paths(self):
