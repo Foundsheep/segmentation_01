@@ -104,7 +104,7 @@ class SPRDataset(Dataset):
             
         if idx % 10 == 0:
             Image.fromarray(img.numpy().transpose(1, 2, 0).astype(np.uint8)).save(f"temp_images/img_{str(idx).zfill(5)}.png")
-            Image.fromarray(label_mask.numpy().transpose(1, 2, 0).astype(np.uint8)).save(f"temp_images/lab_{str(idx).zfill(5)}.png")
+            Image.fromarray(label_mask.numpy().astype(np.uint8)).save(f"temp_images/lab_{str(idx).zfill(5)}.png")
         return img, label_mask
     
     def _read_paths(self):
