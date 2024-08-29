@@ -102,23 +102,23 @@ class SPRDataset(Dataset):
             img = augmented["image"]
             label_mask = augmented["mask"]
             
-        if idx % 10 == 0:
-            Image.fromarray(img.numpy().transpose(1, 2, 0).astype(np.uint8)).save(f"temp_images/img_{str(idx).zfill(5)}.png")
+        # if idx % 10 == 0:
+        #     Image.fromarray(img.numpy().transpose(1, 2, 0).astype(np.uint8)).save(f"temp_images/img_{str(idx).zfill(5)}.png")
             
-            label_restored = np.zeros((label_mask.shape[0], label_mask.shape[1], 3))
-            for label_idx, tmp_txt in enumerate(self.label_txt):
-                divider_1 = txt.find(":")
-                divider_2 = txt.find("::")
+        #     label_restored = np.zeros((label_mask.shape[0], label_mask.shape[1], 3))
+        #     for label_idx, tmp_txt in enumerate(self.label_txt):
+        #         divider_1 = txt.find(":")
+        #         divider_2 = txt.find("::")
 
-                label_name = txt[:divider_1]
-                label_value = txt[divider_1+1:divider_2]
+        #         label_name = txt[:divider_1]
+        #         label_value = txt[divider_1+1:divider_2]
                 
-                rgb_values = list(map(int, label_value.split(",")))
+        #         rgb_values = list(map(int, label_value.split(",")))
 
-                x, y = np.where(label_mask.numpy() == label_idx)
-                label_restored[x, y, :] = rgb_values
+        #         x, y = np.where(label_mask.numpy() == label_idx)
+        #         label_restored[x, y, :] = rgb_values
             
-            Image.fromarray(label_restored.astype(np.uint8)).save(f"temp_images/lab_{str(idx).zfill(5)}.png")
+        #     Image.fromarray(label_restored.astype(np.uint8)).save(f"temp_images/lab_{str(idx).zfill(5)}.png")
         return img, label_mask
     
     def _read_paths(self):
@@ -177,7 +177,9 @@ class SPRDataset(Dataset):
             # print(f"new ratio: [{img_new.shape[0] / img_new.shape[1]}], new_width: [{img_new.shape[1]}]")
 
         new_ratio = img_new.shape[0] / img_new.shape[1]
+        img_new = np.array(Image.fromarray(img_new).resize((Config.TARGET_WIDTH, Config.TARGET_HEIGHT)))
         assert f"{target_ratio :.2f}" == f"{new_ratio :.2f}", f"{target_ratio =}, {new_ratio =}"
+        assert img_new.shape[0] == Config.TARGET_HEIGHT, f"{img_new.shape = }"
         return img_new
         
 

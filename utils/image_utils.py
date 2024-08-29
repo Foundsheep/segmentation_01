@@ -42,22 +42,30 @@ def get_transforms(is_train):
         image = 255 - image
         image = image.astype(np.uint8)
         return image
+    
+    def _lambda_minmax_fn(image, **kwards):
+        image = image.astype(np.float32)
+        image = image / 255.0
+        return image
+    
     if is_train:
         transforms = A.Compose([
-            A.Lambda(image=_lambda_contrast_fn),
+            # A.Lambda(image=_lambda_contrast_fn),
             # A.RGBShift(r_shift_limit=(-50, 50), g_shift_limit=(-50, 50), b_shift_limit=(-50, 50)),
             # A.ColorJitter(brightness=(0.8, 1), contrast=(0.8, 1), saturation=(0.5, 1), hue=(-0.5, 0.5)),
             A.RandomResizedCrop(size=(Config.RESIZED_HEIGHT, Config.RESIZED_WIDTH), scale=(0.8, 1.0), ratio=(0.8, 1.0)),
             A.HorizontalFlip(),
             A.GridDistortion(),            
             A.Blur(),
-            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            A.Lambda(image=_lambda_minmax_fn),
+            # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ToTensorV2(transpose_mask=True),
         ])
     else:
         transforms = A.Compose([
             A.Resize(height=Config.RESIZED_HEIGHT, width=Config.RESIZED_WIDTH),
-            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            A.Lambda(image=_lambda_minmax_fn),
             ToTensorV2(transpose_mask=True),
         ])
     return transforms 
