@@ -50,7 +50,7 @@ def get_transforms(is_train):
     
     if is_train:
         transforms = A.Compose([
-            # A.Lambda(image=_lambda_contrast_fn),
+            A.Lambda(image=_lambda_contrast_fn),
             # A.RGBShift(r_shift_limit=(-50, 50), g_shift_limit=(-50, 50), b_shift_limit=(-50, 50)),
             # A.ColorJitter(brightness=(0.8, 1), contrast=(0.8, 1), saturation=(0.5, 1), hue=(-0.5, 0.5)),
             A.RandomCrop(height=Config.CROP_HEIGHT, width=Config.CROP_HEIGHT, p=0.5),
