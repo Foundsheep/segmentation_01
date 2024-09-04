@@ -32,6 +32,7 @@ def train_func(args):
                        test_ratio=args["test_ratio"])
     
     model = SPRSegmentModel(model_name=args["model_name"],
+                            backbone_name=args["backbone_name"],
                             loss_name=args["loss_name"],
                             optimizer_name=args["optimizer_name"],
                             lr=args["lr"],

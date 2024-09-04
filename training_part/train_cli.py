@@ -26,6 +26,7 @@ def main(args):
     if args.checkpoint_dir:
         model = SPRSegmentModel.load_from_checkpoint(args.checkpoint_dir,
                                                      model_name=args.model_name,
+                                                     backbone_name=args.backbone_name,
                                                      loss_name=args.loss_name,
                                                      lr=args.lr,
                                                      optimizer_name=args.optimizer_name,
@@ -35,6 +36,7 @@ def main(args):
         print(f"model loaded from [{args.checkpoint_dir}]")
     else:
         model = SPRSegmentModel(model_name=args.model_name,
+                                backbone_name=args.backbone_name,
                                 loss_name=args.loss_name,
                                 optimizer_name=args.optimizer_name,
                                 lr=args.lr,
