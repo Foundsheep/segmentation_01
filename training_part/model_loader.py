@@ -114,8 +114,13 @@ class SPRSegmentModel(L.LightningModule):
         except Exception as e:
             print(e)
             traceback.print_exc()
+        
+        print(f"=== model params: {self._count_parameters(model)}")
         return model
     
+    def _count_parameters(self, model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+        
     def forward(self, x):
         x = self._preprocess(x)
         x = x.to(Config.DEVICE)
